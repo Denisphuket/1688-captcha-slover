@@ -8,7 +8,7 @@ puppeteer.use(StealthPlugin());
 
 
 const app = express();
-const port = 3000;
+const port = 13000;
 
 const options = {
 		key: fs.readFileSync('./sslcert/key.pem'),
@@ -21,17 +21,15 @@ app.get('/', async (req, res) => {
 				const readmeContent = fs.readFileSync(path.join(__dirname, 'README.md'), 'utf-8');
 				res.send(`<pre>${readmeContent}</pre>`);  // Отображаем в виде преформатированного текста
 		} catch (error) {
-				console.error('Произошла ошибка при чтении README.md:', error);
-				res.status(500).send('Произошла ошибка на сервере.');
+				res.status(500).send(`Произошла ошибка на сервере. ${error}`);
 		}
 });
 
 app.get('/get-x5sec', async (req, res) => {
 		try {
-				console.log('Запускаем браузер...');
 				const browser = await puppeteer.launch({
-						executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
 						defaultViewport: {width: 1280, height: 720},
+						args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
 
 				const page = await browser.newPage();
@@ -39,11 +37,9 @@ app.get('/get-x5sec', async (req, res) => {
 
 
 				await page.goto('https://detail.1688.com/offer/731969077013.html');
-				console.log('Ожидаем элемент ползунка...');
 				await page.waitForSelector('#nc_1_n1z', {timeout: 15000});
 
 
-				console.log('Пытаемся переместить ползунок...');
 				const slider = await page.$('#nc_1_n1z');
 				const boundingBox = await slider.boundingBox();
 
@@ -102,25 +98,19 @@ app.get('/get-x5sec', async (req, res) => {
 						throw new Error('Cookie "x5sec" не найден');
 				}
 
-				console.log('Найденный Cookie:', cookie);
-
 				// Завершение работы
-				console.log('Завершаем работу...');
 				await browser.close();
 
 				res.send(cookie);
 		} catch (error) {
-				console.error('Произошла ошибка:', error);
 				if (error.message === 'Cookie "x5sec" не найден') {
 						res.status(404).send('Cookie "x5sec" не найден');
 				} else {
-						res.status(500).send('Произошла ошибка при выполнении бота.');
+						res.status(500).send(`Произошла ошибка при выполнении бота. ${error}`);
 				}
 		}
 });
 
-
-app.use(express.static(path.join(__dirname, 'public')));
 
 const server = https.createServer(options, app);
 

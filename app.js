@@ -65,8 +65,6 @@ app.get('/get-x5sec', async (req, res) => {
 				const minDelay = 50;
 				const maxDelay = 250;
 
-				let lastX = startX;
-				let lastY = startY;
 
 				for (let i = 1; i <= steps; i++) {
 						const curveFactor = Math.sin((Math.PI * i) / steps); // добавляем кривизну
@@ -119,3 +117,4 @@ const server = https.createServer(options, app);
 server.listen(port, () => {
 		console.log(`Сервер запущен на https://localhost:${port}`);
 });
+

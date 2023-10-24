@@ -29,6 +29,7 @@ app.get('/get-x5sec', async (req, res) => {
 		try {
 				console.log('Начинаем ...')
 				const browser = await puppeteer.launch({
+						headless: false,
 						defaultViewport: {width: 1280, height: 720},
 						args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});

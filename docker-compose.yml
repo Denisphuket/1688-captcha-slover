@@ -2,8 +2,19 @@ version: '3'
 
 services:
   captcha-slover:
-    build: .
+    container_name: captcha-1688
+    build:
+      context: .
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - default
     ports:
       - "13000:13000"
-    volumes:
-      - ./sslcert:/usr/src/app/sslcert
+    command: npm run start
+    restart: always
+
+networks:
+  default:
+    name: my-network

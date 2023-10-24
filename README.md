@@ -1,4 +1,4 @@
-# CAPTCHA Solver Service
+# CAPTCHA Solver Service 1688.com
 
 ## Описание
 
@@ -14,3 +14,5 @@
 
 1. Установите зависимости: `npm install`
 2. Запустите сервер: `npm run start`
+
+![Пример CAPTCHA](./image.png)

@@ -27,19 +27,24 @@ app.get('/', async (req, res) => {
 
 app.get('/get-x5sec', async (req, res) => {
 		try {
+				console.log('Начинаем ...')
 				const browser = await puppeteer.launch({
 						defaultViewport: {width: 1280, height: 720},
 						args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
 
+				console.log('Запускаем браузер ...')
 				const page = await browser.newPage();
 				await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537');
 
 
-				await page.goto('https://detail.1688.com/offer/731969077013.html');
-				await page.waitForSelector('#nc_1_n1z', {timeout: 15000});
+				console.log('Открываем страницу ...')
+				await page.goto('https://detail.1688.com/offer/731969077013.html', {timeout: 60000});
+				console.log('Ждем селектор #nc_1_n1z ...')
+				await page.waitForSelector('#nc_1_n1z', {timeout: 35000});
 
 
+				console.log('Начинаем двигать слайдер ...')
 				const slider = await page.$('#nc_1_n1z');
 				const boundingBox = await slider.boundingBox();
 
@@ -90,16 +95,18 @@ app.get('/get-x5sec', async (req, res) => {
 
 				await page.mouse.up();
 
-
+				console.log('Парсим cookies ...')
 				const cookies = await page.cookies();
 				const cookie = cookies.find(el => el.name === 'x5sec');
 
 				if (!cookie) {
+						console.log('Не нашли  "x5sec" ;-( ')
 						throw new Error('Cookie "x5sec" не найден');
 				}
 
 				// Завершение работы
 				await browser.close();
+				console.log('Конец ...')
 
 				res.send(cookie);
 		} catch (error) {

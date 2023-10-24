@@ -15,6 +15,16 @@ const options = {
 		cert: fs.readFileSync('./sslcert/cert.pem'),
 };
 
+app.get('/', async (req, res) => {
+		try {
+				// Читаем файл README.md и отправляем его содержимое
+				const readmeContent = fs.readFileSync(path.join(__dirname, 'README.md'), 'utf-8');
+				res.send(`<pre>${readmeContent}</pre>`);  // Отображаем в виде преформатированного текста
+		} catch (error) {
+				console.error('Произошла ошибка при чтении README.md:', error);
+				res.status(500).send('Произошла ошибка на сервере.');
+		}
+});
 
 app.get('/get-x5sec', async (req, res) => {
 		try {

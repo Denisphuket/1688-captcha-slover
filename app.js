@@ -6,7 +6,6 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 
-
 const app = express();
 const port = 13000;
 
@@ -15,35 +14,41 @@ const options = {
 		cert: fs.readFileSync('./sslcert/cert.pem'),
 };
 
+let browser;  // Глобальная переменная для хранения экземпляра браузера
+
+async function getBrowser() {
+		if (!browser) {
+				browser = await puppeteer.launch({
+						headless: false,
+						defaultViewport: { width: 1280, height: 720 },
+						args: ['--no-sandbox', '--disable-setuid-sandbox']
+				});
+		}
+		return browser;
+}
+
+
 app.get('/', async (req, res) => {
 		try {
-				// Читаем файл README.md и отправляем его содержимое
 				const readmeContent = fs.readFileSync(path.join(__dirname, 'README.md'), 'utf-8');
-				res.send(`<pre>${readmeContent}</pre>`);  // Отображаем в виде преформатированного текста
+				res.send(`<pre>${readmeContent}</pre>`);
 		} catch (error) {
 				res.status(500).send(`Произошла ошибка на сервере. ${error}`);
 		}
 });
 
 app.get('/get-x5sec', async (req, res) => {
+		const browser = await getBrowser();
+		const context = await browser.createIncognitoBrowserContext();  // создаем новый контекст браузера
 		try {
-				console.log('Начинаем ...')
-				const browser = await puppeteer.launch({
-						headless: false,
-						defaultViewport: {width: 1280, height: 720},
-						args: ['--no-sandbox', '--disable-setuid-sandbox']
-				});
-
 				console.log('Запускаем браузер ...')
-				const page = await browser.newPage();
+				const page = await context.newPage();
 				await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537');
 
-
 				console.log('Открываем страницу ...')
-				await page.goto('https://detail.1688.com/offer/731969077013.html', {timeout: 60000});
+				await page.goto('https://detail.1688.com/offer/731969077013.html', { timeout: 60000 });
 				console.log('Ждем селектор #nc_1_n1z ...')
-				await page.waitForSelector('#nc_1_n1z', {timeout: 35000});
-
+				await page.waitForSelector('#nc_1_n1z', { timeout: 35000 });
 
 				console.log('Начинаем двигать слайдер ...')
 				const slider = await page.$('#nc_1_n1z');
@@ -106,11 +111,15 @@ app.get('/get-x5sec', async (req, res) => {
 				}
 
 				// Завершение работы
-				await browser.close();
 				console.log('Конец ...')
 
+
+				// await page.close();  // Закрываем страницу после завершения операции
+				await context.close();
 				res.send(cookie);
+
 		} catch (error) {
+				await context.close();
 				if (error.message === 'Cookie "x5sec" не найден') {
 						res.status(404).send('Cookie "x5sec" не найден');
 				} else {
@@ -119,10 +128,8 @@ app.get('/get-x5sec', async (req, res) => {
 		}
 });
 
-
 const server = https.createServer(options, app);
 
 server.listen(port, () => {
 		console.log(`Сервер запущен на https://localhost:${port}`);
 });
-
